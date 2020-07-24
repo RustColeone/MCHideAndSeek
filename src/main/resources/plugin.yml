@@ -1,5 +1,5 @@
 name: HideAndSeek
-main: HideAndSeek
+main: io.github.Laplace.HideAndSeek.HideAndSeek
 version: 0.0.1
 author: Laplace, MaoWTM
 commands:
