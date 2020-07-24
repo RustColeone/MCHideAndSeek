@@ -1,0 +1,8 @@
+name: HideAndSeek
+main: HideAndSeek
+version: 0.0.1
+author: Laplace, MaoWTM
+commands:
+   basic:
+      description: Start the Hide and seek game
+      usage: /startGame
