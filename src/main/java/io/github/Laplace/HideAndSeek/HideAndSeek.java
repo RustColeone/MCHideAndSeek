@@ -109,7 +109,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			return true;
 		}
 		if (cmd.getName().equalsIgnoreCase("startgame")) {
-			GameStart();
+			StartGame();
 			EquipPlayers();
 			return true;
 		}
@@ -202,7 +202,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		gameInProgress = false;
 	}
 
-	public void GameStart() {
+	public void StartGame() {
 		gameInProgress = true;
 		List<? extends Player> players = new ArrayList(Bukkit.getOnlinePlayers());
 		Collections.shuffle(players);
