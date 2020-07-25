@@ -108,7 +108,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			//TODO: should we add players who want to play before starting game?
 			return true;
 		}
-		if (cmd.getName().equalsIgnoreCase("gamestart")) {
+		if (cmd.getName().equalsIgnoreCase("startgame")) {
 			GameStart();
 			EquipPlayers();
 			return true;
