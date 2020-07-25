@@ -28,13 +28,15 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event)
 	{
-		// So no one knows who killed whom
-		event.setDeathMessage("Someone died.");
-		player.getLocation().getWorld().playEffect(player.getLocation(), Effect.SMOKE, 2);
-
 		Player player = event.getEntity();
 		player.setGameMode​(GameMode.SPECTATOR);
 		Player killer = player.getKiller();
+		// So no one knows who killed whom
+		event.setDeathMessage("You heard a scream in the distance, someone must have fade from existence.");
+		player.getLocation().getWorld().playEffect(player.getLocation(), Effect.SMOKE, 2);
+
+		player.sendMessage("Desperately you seek for help, but all you can do is moan and yelp.");
+		killer.sendMessage("Its the right thing to do you told yourself, but tell me, was it for the pelf?");
 
 		if(hunters.IsAllDead()){
 			EndGame(prey);
