@@ -12,3 +12,6 @@ commands:
    listteams:
       description: List which players are in what team.
       usage: /listteams <team|all>
+   endgame:
+      description: Reset the game
+      usage: /endgame

@@ -153,9 +153,9 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			}
 			return true;
 		}
-		if (cmd.getName().equalsIgnoreCase("listTeams")) {
+		if (cmd.getName().equalsIgnoreCase("listteams")) {
 			if (args.length != 1) {
-				sender.sendMessage("Usage: /listTeams <hunters|preys|moles|all>");
+				sender.sendMessage("Usage: /listteams <hunters|preys|moles|all>");
 				return true;
 			}
 			if (!gameInProgress) {
@@ -187,7 +187,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			}
 			return true;
 		}
-		if (cmd.getName().equalsIgnoreCase("endGame")) {
+		if (cmd.getName().equalsIgnoreCase("endgame")) {
 			EndGame(null);
 			return true;
 		}
