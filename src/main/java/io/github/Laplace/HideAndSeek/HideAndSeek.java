@@ -122,38 +122,29 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 				sender.sendMessage("Usage: /listTeams <hunters|preys|moles|all>");
 				return true;
 			}
-			String allHunters = "<Hunters>";
-			String allMoles = "<Moles>";
-			String allPreys = "<Preys>";
-			for (Player p: getServer.getOnlinePlayers()) {
-				if(preys.HasPlayer(p)){
-					allPreys += "\n" + p.getName();
-				}
-				else if(hunters.HasPlayer(p)){
-					allHunters += "\n" + p.getName();
-				}
-				else if(moles.HasPlayer(p)){
-					allMoles += "\n" + p.getName();
-				}
-			}
+			ArrayList<Team> teams_to_send = new ArrayList<Team>();
 			switch (args[0]) {
 				case "hunters":
-					sender.sendMessage(allHunters);
+					teams_to_send.add(hunters);
 					break;
 				case "preys":
-					sender.sendMessage(allPreys);
+					teams_to_send.add(preys);
 					break;
 				case "moles":
-					sender.sendMessage(allMoles);
+					teams_to_send.add(moles);
 					break;
 				case "all":
-					sender.sendMessage(allHunters);
-					sender.sendMessage(allPreys);
-					sender.sendMessage(allMoles);
+					teams_to_send.add(hunters);
+					teams_to_send.add(preys);
+					teams_to_send.add(moles);
 					break;
 				default:
 					sender.sendMessage("Invalid team.");
 					return true;
+			}
+			for (Team t : teams_to_send) {
+				String msg = t.PrintPlayerList();
+				sender.sendMessage(msg);
 			}
 			return true;
 		}

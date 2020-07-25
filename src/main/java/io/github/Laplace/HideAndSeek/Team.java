@@ -93,4 +93,22 @@ public class Team {
             p.setHealth(newHp);
         }
     }
+
+    public String PrintPlayerList() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(ChatColor.BOLD);
+        sb.append(ChatColor.GOLD);
+        sb.append(this.GetName());
+        sb.append(ChatColor.RESET);
+        sb.append(": ");
+        boolean first = true;
+        for (String pName : this.players) {
+            if (!first) {
+                sb.append(", ");
+            }
+            first = false;
+            sb.append(pName);
+        }
+        return sb.toString();
+    }
 }
