@@ -1,99 +1,96 @@
 package io.github.Laplace.HideAndSeek;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import org.bukkit.Bukkit;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 
 public class Team {
-    private static List<Team> teams  = new ArrayList<Team>();
-    
-    public static final Team Hunter = new Team("Hunter");
-    public static final Team Mole   = new Team("Mole");
-    public static final Team Prey   = new Team("Prey");
-    
     private String name;
     private String prefix;
     /*private int maxPlayers;*/
-    private List<String> players = new ArrayList<String>();
-    
-    public Team(String name/*, int maxPlayers*/) {
+    private HashSet<String> players = new HashSet<String>();
+
+    public Team(String name) {
         this.name = name;
-        /*this.maxPlayers = maxPlayers;*/
-        teams.add(this);
     }
-    
+
     public String GetPrefix() {
         return this.prefix;
     }
-    
+
     public String GetName() {
     	return this.name;
     }
-    
+
+    public void Reset() {
+        this.players.clear();
+    }
+
     public void AddPlayer(Player player) {
         players.add(player.getName());
+        player.setGameMode​(GameMode.ADVENTURE);
+        player.sendMessage(String.format("You are now a %s", this.GetName()));
     }
-    
-    public void RemovePlayer(Player player) {
-        players.remove(player.getName());
+
+    public void RemovePlayer(String name) {
+        players.remove(name);
     }
-    
-    public List<String> GetPlayers() {
+    public void RemovePlayer(Player p) {
+        RemovePlayer(p.getName());
+    }
+
+    public HashSet<String> GetPlayers() {
         return this.players;
     }
-    
-    public static Team GetSmallestTeam() {
-        //smallest team, starting with a default team
-        Team teamMin = Team.Hunter;
-        
-        //loop through all teams and update the smallest team if needed
-        for (Team team : teams) {
-            if (team.GetPlayers().size() < teamMin.GetPlayers().size()) {
-                teamMin = team;
+
+    public boolean HasPlayer(String name) {
+        return this.players.contains(name);
+    }
+    public boolean HasPlayer(Player p) {
+        return HasPlayer(p.getName());
+    }
+
+    public boolean IsAllDead() {
+        for (String pName : this.players) {
+            Player p = Bukkit.getPlayer(pName);
+            if (p == null) {
+                continue;
+            }
+            if (p.getGameMode() != GameMode.SPECTATOR) {
+                return false;
             }
         }
-        
-        //return the smallest team
-        return teamMin;
+        return true;
     }
-    
-    public Boolean TeamAvailable() {
-    	int totalPlayers = Bukkit.getOnlinePlayers().size();
-    	//int totalPlayersInTeam = 0;
-    	
-    	int maxHunters = (int)Math.ceil(totalPlayers / 8f);
-    	int maxMoles = (int)Math.floor(totalPlayers / 8f);
-    	int maxPreys = totalPlayers - maxHunters - maxMoles;
-    	/*
-    	for (Team team : teams) {
-    		totalPlayersInTeam += team.GetPlayers().size();
-        }*/
-        if(this.name == "Hunter") {
-        	if(this.players.size() <= maxHunters) {
-        		return true;
-        	}
-        }
-        if(this.name == "Mole") {
-        	if(this.players.size() <= maxMoles) {
-        		return true;
-        	}
-        }
-        if(this.name == "Prey") {
-        	if(this.players.size() <= maxPreys) {
-        		return true;
-        	}
-        }
-        return false;
-    }
-    
-    public static Team GetPlayerTeam(Player player) {
-        for (Team team : teams) {
-            if (team.GetPlayers().contains(player.getName())) {
-                return team;
+
+    public void AdjustMaxHealth(int offset) {
+        for (String pName : this.players) {
+            Player p = Bukkit.getPlayer(pName);
+            if (p == null) {
+                // TODO
+                continue;
             }
+            if (p.getGameMode() == GameMode.SPECTATOR) {
+                continue;
+            }
+            double currentMaxHp = p.getMaxHealth();
+            double newMaxHp = currentMaxHp + offset;
+            if (newMaxHp < 10) newMaxHp = 10;
+            if (newMaxHp > 30) newMaxHp = 30;
+            p.setMaxHealth(newMaxHp);
+            double currHp = p.getHealth();
+            double newHp = currHp;
+            if (offset > 0) {
+                newHp += offset;
+            }
+            if (newHp > newMaxHp) {
+                newHp = newMaxHp;
+            }
+            if (newHp <= 0) {
+                newHp = 0;
+            }
+            p.setHealth(newHp);
         }
-        return null;
     }
 }

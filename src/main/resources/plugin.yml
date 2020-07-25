@@ -3,6 +3,9 @@ main: io.github.Laplace.HideAndSeek.HideAndSeek
 version: 0.0.1
 author: Laplace, MaoWTM
 commands:
-   basic:
-      description: Start the Hide and seek game
-      usage: /startGame
+   gamestart:
+      description: Assign teams to logged-in players and start the Hide and seek game.
+      usage: /gamestart
+   setteam:
+      description: Manually assign (or change) team of a player.
+      usage: /setteam <player> <team>
