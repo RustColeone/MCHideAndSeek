@@ -13,6 +13,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.persistence.PersistentDataType;
 
 public final class HideAndSeek extends JavaPlugin implements Listener {
 	Team hunters = new Team("Hunter");
@@ -39,6 +40,9 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		if (!gameInProgress) return;
 		Player deadPlayer = event.getEntity();
 		deadPlayer.setGameMode​(GameMode.SPECTATOR);
+		hunters.MarkDeadIfHas(deadPlayer);
+		moles.MarkDeadIfHas(deadPlayer);
+		preys.MarkDeadIfHas(deadPlayer);
 		Player killer = deadPlayer.getKiller();
 		// So no one knows who killed whom
 		event.setDeathMessage("");
@@ -110,7 +114,6 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		}
 		if (cmd.getName().equalsIgnoreCase("startgame")) {
 			StartGame();
-			EquipPlayers();
 			return true;
 		}
 		if (cmd.getName().equalsIgnoreCase("setteam")) {
@@ -203,6 +206,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 	}
 
 	public void StartGame() {
+		this.Reset();
 		gameInProgress = true;
 		List<? extends Player> players = new ArrayList(Bukkit.getOnlinePlayers());
 		Collections.shuffle(players);
@@ -230,6 +234,8 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			p.setMaxHealth(20);
 			p.setHealth​(20);
 		}
+
+		EquipPlayers();
 	}
 
 	public void EquipPlayers() {
@@ -238,15 +244,10 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			inv.clear();
 			if (preys.HasPlayer(p)){
 				inv.addItem(new ItemStack(Material.BREAD, 1));
-				//Giving one bread;
 			} else if (hunters.HasPlayer(p)){
-				ItemStack item = new ItemStack(Material.IRON_AXE, 1);
-				ItemMeta im = item.getItemMeta();
-				((Damageable) im).setDamage​(1);
-				item.setItemMeta(im);
+				ItemStack item = new ItemStack(Material.IRON_AXE, 1, (short) 200);
 				inv.addItem(item);
-				p.sendMessage("[DEBUG] You should now get IRON_AXE");
-				//Giving one Iron_Axe that can only attack twice
+				// FIXME
 			} else if (moles.HasPlayer(p)){
 				ItemStack item = new ItemStack(Material.LINGERING_POTION, 1);
 				PotionMeta meta = ((PotionMeta) item.getItemMeta());
@@ -254,7 +255,6 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 				meta.addCustomEffect(new PotionEffect(PotionEffectType.SPEED, 5, 2), true);
 				item.setItemMeta(meta);
 				inv.addItem(item);
-				//Giving one Iron_Axe that can only attack twice
 			} else {
 				p.sendMessage("For some reason you were not assigned a group. Therefore we did not give you any items.");
 			}
@@ -268,9 +268,9 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			String Message;
 			if (winningTeam != null) {
 				if (winningTeam.HasPlayer(p)) {
-					p.sendMessage(String.format("%s won, congradulation!", winningTeam.GetName()));
+					p.sendMessage(String.format("%s%s**** %s won, congradulation! ****", ChatColor.BLUE, ChatColor.BOLD, winningTeam.GetName()));
 				} else {
-					p.sendMessage(String.format("%s won.", winningTeam.GetName()));
+					p.sendMessage(String.format("%s**** %s won (your team lost) ****", ChatColor.RED, winningTeam.GetName()));
 				}
 			}
 			p.sendMessage("Player and their teams:");

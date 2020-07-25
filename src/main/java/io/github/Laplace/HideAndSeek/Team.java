@@ -54,8 +54,10 @@ public class Team {
         return HasPlayer(p.getName());
     }
 
-    public void MarkDead(Player p) {
-        this.deads.add(p.getUniqueId());
+    public void MarkDeadIfHas(Player p) {
+        if (this.HasPlayer(p)) {
+            this.deads.add(p.getUniqueId());
+        }
     }
 
     public boolean IsAllDead() {
@@ -107,6 +109,9 @@ public class Team {
         sb.append(ChatColor.GOLD);
         sb.append(this.GetName());
         sb.append(ChatColor.RESET);
+        if (this.IsAllDead()) {
+            sb.append(" (all dead)");
+        }
         sb.append(": ");
         boolean first = true;
         for (String pName : this.players) {
