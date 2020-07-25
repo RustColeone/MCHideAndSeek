@@ -5,8 +5,12 @@ import org.bukkit.*;
 import org.bukkit.event.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.*;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.potion.*;
+import org.bukkit.event.player.*;
+import org.bukkit.event.entity.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 
@@ -14,9 +18,13 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 	Team hunters = new Team("Hunter");
 	Team moles   = new Team("Mole");
 	Team preys   = new Team("Prey");
+	boolean gameInProgress = false;
+
+	HashMap<UUID, Location> playerDeathPoint = new HashMap();
 
 	@Override
 	public void onEnable() {
+		this.Reset();
 		PluginManager pm = this.getServer().getPluginManager();
 		pm.registerEvents(this, this);
 	}
@@ -28,30 +36,46 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event)
 	{
-		Player player = event.getEntity();
-		player.setGameMode​(GameMode.SPECTATOR);
-		Player killer = player.getKiller();
+		if (!gameInProgress) return;
+		Player deadPlayer = event.getEntity();
+		deadPlayer.setGameMode​(GameMode.SPECTATOR);
+		Player killer = deadPlayer.getKiller();
 		// So no one knows who killed whom
-		event.setDeathMessage("You heard a scream in the distance, someone must have fade from existence.");
-		player.getLocation().getWorld().playEffect(player.getLocation(), Effect.SMOKE, 2);
-
-		player.sendMessage("Desperately you seek for help, but all you can do is moan and yelp.");
-		killer.sendMessage("Its the right thing to do you told yourself, but tell me, was it for the pelf?");
-
-		if(hunters.IsAllDead()){
-			EndGame(prey);
+		event.setDeathMessage("");
+		Location loc = deadPlayer.getLocation();
+		loc.getWorld().playEffect(deadPlayer.getLocation(), Effect.SMOKE, 2);
+		for (Player p : this.getServer().getOnlinePlayers()) {
+			if (p == deadPlayer || p == killer) continue;
+			p.sendMessage("You heard a scream in the distance, someone must have fade from existence.");
 		}
-		else if(preys.IsAllDead()){
-			if(!moles.IsAllDead()){
-				EndGame(mole);
-			}
-			else{
-				EndGame(hunters);
-			}
+		playerDeathPoint.put(deadPlayer.getUniqueId(), loc);
+
+		deadPlayer.sendMessage("Desperately you seek for help, but all you can do is moan and yelp.");
+		if (killer != null) {
+			killer.sendMessage("Its the right thing to do you told yourself, but tell me, was it for the pelf?");
+		}
+
+		if (hunters.IsAllDead()){
+			EndGame(preys);
 			return;
+		} else if (preys.IsAllDead()) {
+			if (!moles.IsAllDead()){
+				EndGame(moles);
+				return;
+			} else {
+				EndGame(hunters);
+				return;
+			}
+		} else if (moles.IsAllDead()) {
+			for (String pName : moles.GetPlayerNames()) {
+				Player p = Bukkit.getPlayer(pName);
+				if (p != null) {
+					p.sendMessage("Team moles has lost. The game continues with hunter vs preys.");
+				}
+			}
 		}
 
-		if (preys.HasPlayer(player)) {
+		if (preys.HasPlayer(deadPlayer)) {
 			preys.AdjustMaxHealth(-1);
 			if (killer != null && preys.HasPlayer(killer)) {
 				hunters.AdjustMaxHealth(1);
@@ -67,6 +91,15 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		// Preys all -2 hearts
 		// Minimum 5 hearts and maximum 15 hearts
 		// Alternative: if the dead Prey was killed by another Prey, do the above actions
+	}
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onPlayerRespawn(PlayerRespawnEvent evt) {
+		if (!gameInProgress) return;
+		Player p = evt.getPlayer();
+		Location deathLoc = playerDeathPoint.get(p.getUniqueId());
+		if (deathLoc != null) {
+			evt.setRespawnLocation​(deathLoc);
+		}
 	}
 
 	@Override
@@ -84,6 +117,9 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			if (args.length != 2) {
 				sender.sendMessage("Usage: /setteam <player> <hunters|preys|moles>");
 				return true;
+			}
+			if (!gameInProgress) {
+				sender.sendMessage("Game not started.");
 			}
 			String playerName = args[0];
 			String tstr = args[1];
@@ -122,6 +158,9 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 				sender.sendMessage("Usage: /listTeams <hunters|preys|moles|all>");
 				return true;
 			}
+			if (!gameInProgress) {
+				sender.sendMessage("Game not started.");
+			}
 			ArrayList<Team> teams_to_send = new ArrayList<Team>();
 			switch (args[0]) {
 				case "hunters":
@@ -149,12 +188,22 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			return true;
 		}
 		if (cmd.getName().equalsIgnoreCase("endGame")) {
+			EndGame(null);
 			return true;
 		}
 		return false;
 	}
 
+	public void Reset() {
+		hunters.Reset();
+		moles.Reset();
+		preys.Reset();
+		playerDeathPoint.clear();
+		gameInProgress = false;
+	}
+
 	public void GameStart() {
+		gameInProgress = true;
 		List<? extends Player> players = new ArrayList(Bukkit.getOnlinePlayers());
 		Collections.shuffle(players);
 		int totalPlayers = players.size();
@@ -166,10 +215,6 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			maxPreys -= 1;
 			maxMoles += 1;
 		}
-
-		hunters.Reset();
-		moles.Reset();
-		preys.Reset();
 
 		for (int i = 0; i < maxHunters; i ++) {
 			hunters.AddPlayer(players.get(i));
@@ -188,52 +233,51 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 	}
 
 	public void EquipPlayers() {
-		for (Player p: getServer.getOnlinePlayers()) {
-			if(preys.HasPlayer(p)){
-				p.getInventory.add(new ItemStack(Material.BREAD, 1));
+		for (Player p : this.getServer().getOnlinePlayers()) {
+			PlayerInventory inv = p.getInventory();
+			inv.clear();
+			if (preys.HasPlayer(p)){
+				inv.addItem(new ItemStack(Material.BREAD, 1));
 				//Giving one bread;
-			}
-
-			else if(hunters.HasPlayer(p)){
-				ItemStack item = new ItemStack(Material.IRON_AXE);
-				item.setDurability((short)10);
-				p.getInventory.add(new ItemStack(item));
+			} else if (hunters.HasPlayer(p)){
+				ItemStack item = new ItemStack(Material.IRON_AXE, 1);
+				ItemMeta im = item.getItemMeta();
+				((Damageable) im).setDamage​(1);
+				item.setItemMeta(im);
+				inv.addItem(item);
+				p.sendMessage("[DEBUG] You should now get IRON_AXE");
 				//Giving one Iron_Axe that can only attack twice
-			}
-
-			else if(moles.HasPlayer(p)){
-				ItemStack item = new ItemStack(Material.LINGERING_POTION);
-                PotionMeta meta = ((PotionMeta) item.getItemMeta());
-                meta.setColor(Color.BLUE);
-                meta.addCustomEffect(new PotionEffect(PotionEffectType.Speed, 5, 2), true);
-                item.setItemMeta(meta);
-				player.getInventory().addItem(item);
+			} else if (moles.HasPlayer(p)){
+				ItemStack item = new ItemStack(Material.LINGERING_POTION, 1);
+				PotionMeta meta = ((PotionMeta) item.getItemMeta());
+				meta.setColor(Color.BLUE);
+				meta.addCustomEffect(new PotionEffect(PotionEffectType.SPEED, 5, 2), true);
+				item.setItemMeta(meta);
+				inv.addItem(item);
 				//Giving one Iron_Axe that can only attack twice
+			} else {
+				p.sendMessage("For some reason you were not assigned a group. Therefore we did not give you any items.");
 			}
 		}
 	}
 
 	public void EndGame(Team winningTeam){
-		if(winningTeam != null){
-			for (Player p: getServer.getOnlinePlayers()) {
-
-				p.setMaxHealth(20);
-				p.setHealth​(20);
-
-				String Message;
-				if(winningTeam.HasPlayer(p)){
-					Message = "Congradulations " + p.GetName() + ", the " + winningTeam.GetName() + " wins!";
+		for (Player p : this.getServer().getOnlinePlayers()) {
+			p.setMaxHealth(20);
+			p.setHealth​(20);
+			String Message;
+			if (winningTeam != null) {
+				if (winningTeam.HasPlayer(p)) {
+					p.sendMessage(String.format("%s won, congradulation!", winningTeam.GetName()));
+				} else {
+					p.sendMessage(String.format("%s won.", winningTeam.GetName()));
 				}
-				else{
-					Message = "Sorry  " + p.GetName() + ", the " + winningTeam.GetName() + " lost...";
-				}
-				p.sendMessage(Message);
 			}
+			p.sendMessage("Player and their teams:");
+			p.sendMessage(hunters.PrintPlayerList());
+			p.sendMessage(preys.PrintPlayerList());
+			p.sendMessage(moles.PrintPlayerList());
 		}
-		hunters.Reset();
-		moles.Reset();
-		preys.Reset();
-		return;
+		this.Reset();
 	}
-
 }

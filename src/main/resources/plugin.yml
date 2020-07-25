@@ -9,3 +9,6 @@ commands:
    setteam:
       description: Manually assign (or change) team of a player.
       usage: /setteam <player> <team>
+   listteams:
+      description: List which players are in what team.
+      usage: /listteams <team|all>

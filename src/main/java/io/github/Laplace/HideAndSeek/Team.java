@@ -10,9 +10,11 @@ public class Team {
     private String prefix;
     /*private int maxPlayers;*/
     private HashSet<String> players = new HashSet<String>();
+    private HashSet<UUID> deads = new HashSet<UUID>();
 
     public Team(String name) {
         this.name = name;
+        this.Reset();
     }
 
     public String GetPrefix() {
@@ -25,6 +27,7 @@ public class Team {
 
     public void Reset() {
         this.players.clear();
+        this.deads.clear();
     }
 
     public void AddPlayer(Player player) {
@@ -40,7 +43,7 @@ public class Team {
         RemovePlayer(p.getName());
     }
 
-    public HashSet<String> GetPlayers() {
+    public HashSet<String> GetPlayerNames() {
         return this.players;
     }
 
@@ -51,13 +54,17 @@ public class Team {
         return HasPlayer(p.getName());
     }
 
+    public void MarkDead(Player p) {
+        this.deads.add(p.getUniqueId());
+    }
+
     public boolean IsAllDead() {
         for (String pName : this.players) {
             Player p = Bukkit.getPlayer(pName);
             if (p == null) {
                 continue;
             }
-            if (p.getGameMode() != GameMode.SPECTATOR) {
+            if (!this.deads.contains(p.getUniqueId())) {
                 return false;
             }
         }
