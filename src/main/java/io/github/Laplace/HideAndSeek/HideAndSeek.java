@@ -6,6 +6,7 @@ import org.bukkit.event.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 
@@ -29,9 +30,24 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 	{
 		// So no one knows who killed whom
 		event.setDeathMessage("Someone died.");
+		player.getLocation().getWorld().playEffect(player.getLocation(), Effect.SMOKE, 2);
+
 		Player player = event.getEntity();
 		player.setGameMode​(GameMode.SPECTATOR);
 		Player killer = player.getKiller();
+
+		if(hunters.IsAllDead()){
+			EndGame(prey);
+		}
+		else if(preys.IsAllDead()){
+			if(!moles.IsAllDead()){
+				EndGame(mole);
+			}
+			else{
+				EndGame(hunters);
+			}
+			return;
+		}
 
 		if (preys.HasPlayer(player)) {
 			preys.AdjustMaxHealth(-1);
@@ -59,6 +75,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		}
 		if (cmd.getName().equalsIgnoreCase("gamestart")) {
 			GameStart();
+			EquipPlayers();
 			return true;
 		}
 		if (cmd.getName().equalsIgnoreCase("setteam")) {
@@ -99,6 +116,43 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			return true;
 		}
 		if (cmd.getName().equalsIgnoreCase("listTeams")) {
+			if (args.length != 1) {
+				sender.sendMessage("Usage: /listTeams <hunters|preys|moles|all>");
+				return true;
+			}
+			String allHunters = "<Hunters>";
+			String allMoles = "<Moles>";
+			String allPreys = "<Preys>";
+			for (Player p: getServer.getOnlinePlayers()) {
+				if(preys.HasPlayer(p)){
+					allPreys += "\n" + p.getName();
+				}
+				else if(hunters.HasPlayer(p)){
+					allHunters += "\n" + p.getName();
+				}
+				else if(moles.HasPlayer(p)){
+					allMoles += "\n" + p.getName();
+				}
+			}
+			switch (args[0]) {
+				case "hunters":
+					sender.sendMessage(allHunters);
+					break;
+				case "preys":
+					sender.sendMessage(allPreys);
+					break;
+				case "moles":
+					sender.sendMessage(allMoles);
+					break;
+				case "all":
+					sender.sendMessage(allHunters);
+					sender.sendMessage(allPreys);
+					sender.sendMessage(allMoles);
+					break;
+				default:
+					sender.sendMessage("Invalid team.");
+					return true;
+			}
 			return true;
 		}
 		if (cmd.getName().equalsIgnoreCase("endGame")) {
@@ -141,10 +195,52 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 	}
 
 	public void EquipPlayers() {
-		//TODO:
-		//Give players some items according to their roles
-		//Hunters: Almost-Broken Iron-Axe
-		//Moles: Lingering Potion of Poison
-		//Possibly tag players only where they can see it
+		for (Player p: getServer.getOnlinePlayers()) {
+			if(preys.HasPlayer(p)){
+				p.getInventory.add(new ItemStack(Material.BREAD, 1));
+				//Giving one bread;
+			}
+
+			else if(hunters.HasPlayer(p)){
+				ItemStack item = new ItemStack(Material.IRON_AXE);
+				item.setDurability((short)10);
+				p.getInventory.add(new ItemStack(item));
+				//Giving one Iron_Axe that can only attack twice
+			}
+
+			else if(moles.HasPlayer(p)){
+				ItemStack item = new ItemStack(Material.LINGERING_POTION);
+                PotionMeta meta = ((PotionMeta) item.getItemMeta());
+                meta.setColor(Color.BLUE);
+                meta.addCustomEffect(new PotionEffect(PotionEffectType.Speed, 5, 2), true);
+                item.setItemMeta(meta);
+				player.getInventory().addItem(item);
+				//Giving one Iron_Axe that can only attack twice
+			}
+		}
 	}
+
+	public void EndGame(Team winningTeam){
+		if(winningTeam != null){
+			for (Player p: getServer.getOnlinePlayers()) {
+
+				p.setMaxHealth(20);
+				p.setHealth​(20);
+
+				String Message;
+				if(winningTeam.HasPlayer(p)){
+					Message = "Congradulations " + p.GetName() + ", the " + winningTeam.GetName() + " wins!";
+				}
+				else{
+					Message = "Sorry  " + p.GetName() + ", the " + winningTeam.GetName() + " lost...";
+				}
+				p.sendMessage(Message);
+			}
+		}
+		hunters.Reset();
+		moles.Reset();
+		preys.Reset();
+		return;
+	}
+
 }
