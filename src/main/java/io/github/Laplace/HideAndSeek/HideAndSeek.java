@@ -118,7 +118,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		}
 		if (cmd.getName().equalsIgnoreCase("setteam")) {
 			if (args.length != 2) {
-				sender.sendMessage("Usage: /setteam <player> <hunters|preys|moles>");
+				sender.sendMessage("Usage: /setteam <player> <hunters | preys | moles>");
 				return true;
 			}
 			if (!gameInProgress) {
@@ -158,7 +158,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		}
 		if (cmd.getName().equalsIgnoreCase("listteams")) {
 			if (args.length != 1) {
-				sender.sendMessage("Usage: /listteams <hunters|preys|moles|all>");
+				sender.sendMessage("Usage: /listteams <hunters | preys | moles | all>");
 				return true;
 			}
 			if (!gameInProgress) {
@@ -251,9 +251,8 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 
 				inv.addItem(item);
 				// FIXME
-				//I be doing it already if I know how --10:31
-				//Wait, try this -- 01:31
-				//If it doesn't work, I'd settle for a brand new iron axe
+
+				//How about for the sake of our own sanity just run a command from console instead
 				ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
 				String command = "/give " + p.name + " iron_axe 1 240";
 				Bukkit.dispatchCommand(console, command);
@@ -287,6 +286,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			p.sendMessage(hunters.PrintPlayerList());
 			p.sendMessage(preys.PrintPlayerList());
 			p.sendMessage(moles.PrintPlayerList());
+			p.sendMessage("=============================");
 		}
 		this.Reset();
 	}
