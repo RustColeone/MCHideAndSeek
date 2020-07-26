@@ -80,14 +80,13 @@ public class Team {
                 // TODO
                 continue;
             }
-            if (p.getGameMode() == GameMode.SPECTATOR) {
+            if (this.deads.contains(pName)) {
                 continue;
             }
             double currentMaxHp = p.getMaxHealth();
             double newMaxHp = currentMaxHp + offset;
             if (newMaxHp < 10) newMaxHp = 10;
             if (newMaxHp > 30) newMaxHp = 30;
-            p.setMaxHealth(newMaxHp);
             double currHp = p.getHealth();
             double newHp = currHp;
             if (offset > 0) {
@@ -99,7 +98,24 @@ public class Team {
             if (newHp <= 0) {
                 newHp = 0;
             }
-            p.setHealth(newHp);
+            try {
+                if (newHp < currHp) {
+                    p.damage(currHp - newHp);
+                    p.setMaxHealth(newMaxHp);
+                } else {
+                    p.setMaxHealth(newMaxHp);
+                    if (newHp <= 0) {
+                        p.damage(p.getHealth());
+                    } else {
+                        p.setHealth(newHp);
+                    }
+                    if (offset > 0) {
+                        p.playSound​(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1f, 0f);
+                    }
+                }
+            } catch (Exception e) {
+                // tood
+            }
         }
     }
 

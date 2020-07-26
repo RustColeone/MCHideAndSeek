@@ -15,3 +15,6 @@ commands:
    endgame:
       description: Reset the game
       usage: /endgame
+   adjustmaxhealth:
+      description: Adjust max health of team
+      usage: /adjustmaxhealth <team> <offset>

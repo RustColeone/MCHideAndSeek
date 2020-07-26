@@ -163,6 +163,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			}
 			if (!gameInProgress) {
 				sender.sendMessage("Game not started.");
+				return true;
 			}
 			ArrayList<Team> teams_to_send = new ArrayList<Team>();
 			switch (args[0]) {
@@ -191,7 +192,45 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			return true;
 		}
 		if (cmd.getName().equalsIgnoreCase("endgame")) {
+			if (args.length != 0) {
+				sender.sendMessage("Usage: /endgame");
+				return true;
+			}
 			EndGame(null);
+			return true;
+		}
+		if (cmd.getName().equalsIgnoreCase("adjustmaxhealth")) {
+			if (args.length != 2) {
+				return false;
+			}
+			if (!gameInProgress) {
+				sender.sendMessage("Game not started.");
+				return true;
+			}
+			String tstr = args[0];
+			int adj;
+			try {
+				adj = Integer.parseInt(args[1]);
+			} catch (Exception e) {
+				sender.sendMessage("Failed to parse int.");
+				return true;
+			}
+			Team t;
+			switch (tstr) {
+				case "hunters":
+					t = hunters;
+					break;
+				case "preys":
+					t = preys;
+					break;
+				case "moles":
+					t = moles;
+					break;
+				default:
+					sender.sendMessage("Invalid team.");
+					return true;
+			}
+			t.AdjustMaxHealth(adj);
 			return true;
 		}
 		return false;
@@ -215,10 +254,6 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		int maxHunters = (int) Math.ceil(totalPlayers / 8f);
 		int maxMoles = (int) Math.floor(totalPlayers / 8f);
 		int maxPreys = totalPlayers - maxHunters - maxMoles;
-		if (maxMoles == 0 && maxPreys > 1) {
-			maxPreys -= 1;
-			maxMoles += 1;
-		}
 
 		for (int i = 0; i < maxHunters; i ++) {
 			hunters.AddPlayer(players.get(i));
@@ -247,9 +282,8 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			} else if (hunters.HasPlayer(p)){
 				// FIXME: this is not the way.
 				ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
-				String command = "minecraft:give \"" + p.getName().replaceAll​("\\\\", "\\\\").replaceAll​("\"", "\\\"") + "\" minecraft:iron_axe{Damage: 240}";
+				String command = "minecraft:give \"" + p.getName().replaceAll​("\\\\", "\\\\").replaceAll​("\"", "\\\"") + "\" minecraft:iron_axe{Damage: 245}";
 				Bukkit.dispatchCommand(console, command);
-
 			} else if (moles.HasPlayer(p)){
 				ItemStack item = new ItemStack(Material.LINGERING_POTION, 1);
 				PotionMeta meta = ((PotionMeta) item.getItemMeta());
