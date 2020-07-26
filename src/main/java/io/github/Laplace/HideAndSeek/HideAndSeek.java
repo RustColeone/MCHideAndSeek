@@ -245,16 +245,9 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			if (preys.HasPlayer(p)){
 				inv.addItem(new ItemStack(Material.BREAD, 1));
 			} else if (hunters.HasPlayer(p)){
-
-				//ItemStack item = new ItemStack(Material.IRON_AXE, 1);
-				//weapon.setDurability(item.getType().getMaxDurability() - 240);
-
-				inv.addItem(item);
-				// FIXME
-
-				//How about for the sake of our own sanity just run a command from console instead
+				// FIXME: this is not the way.
 				ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
-				String command = "/give " + p.name + " iron_axe 1 240";
+				String command = "minecraft:give \"" + p.getName().replaceAll​("\\\\", "\\\\").replaceAll​("\"", "\\\"") + "\" minecraft:iron_axe{Damage: 240}";
 				Bukkit.dispatchCommand(console, command);
 
 			} else if (moles.HasPlayer(p)){
