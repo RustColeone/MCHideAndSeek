@@ -50,7 +50,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		loc.getWorld().playEffect(deadPlayer.getLocation(), Effect.SMOKE, 2);
 		for (Player p : this.getServer().getOnlinePlayers()) {
 			if (p == deadPlayer || p == killer) continue;
-			p.sendMessage("You heard a scream in the distance, someone must have fade from existence.");
+			p.sendMessage("A scream echos in distance, someone must have fade from existence.");
 		}
 		playerDeathPoint.put(deadPlayer.getUniqueId(), loc);
 
@@ -245,14 +245,24 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			if (preys.HasPlayer(p)){
 				inv.addItem(new ItemStack(Material.BREAD, 1));
 			} else if (hunters.HasPlayer(p)){
-				ItemStack item = new ItemStack(Material.IRON_AXE, 1, (short) 200);
+
+				//ItemStack item = new ItemStack(Material.IRON_AXE, 1);
+				//weapon.setDurability(item.getType().getMaxDurability() - 240);
+
 				inv.addItem(item);
 				// FIXME
+				//I be doing it already if I know how --10:31
+				//Wait, try this -- 01:31
+				//If it doesn't work, I'd settle for a brand new iron axe
+				ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
+				String command = "/give " + p.name + " iron_axe 1 240";
+				Bukkit.dispatchCommand(console, command);
+
 			} else if (moles.HasPlayer(p)){
 				ItemStack item = new ItemStack(Material.LINGERING_POTION, 1);
 				PotionMeta meta = ((PotionMeta) item.getItemMeta());
 				meta.setColor(Color.BLUE);
-				meta.addCustomEffect(new PotionEffect(PotionEffectType.SPEED, 5, 2), true);
+				meta.addCustomEffect(new PotionEffect(PotionEffectType.POISON, 10, 2), true);
 				item.setItemMeta(meta);
 				inv.addItem(item);
 			} else {
@@ -268,7 +278,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			String Message;
 			if (winningTeam != null) {
 				if (winningTeam.HasPlayer(p)) {
-					p.sendMessage(String.format("%s%s**** %s won, congradulation! ****", ChatColor.BLUE, ChatColor.BOLD, winningTeam.GetName()));
+					p.sendMessage(String.format("%s%s**** %s won, congratulation! ****", ChatColor.BLUE, ChatColor.BOLD, winningTeam.GetName()));
 				} else {
 					p.sendMessage(String.format("%s**** %s won (your team lost) ****", ChatColor.RED, winningTeam.GetName()));
 				}
