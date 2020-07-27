@@ -263,6 +263,27 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		}
 	}
 
+	public void FillChest(){
+		ItemStack[] items = new ItemStack[11];
+		items[0] = new ItemStack(Material.WOODEN_PICKAXE, 1);
+		items[1] = new ItemStack(Material.STONE_HOE, 1);
+		items[2] = new ItemStack(Material.LEATHER_HELMET, 1);
+		items[3] = new ItemStack(Material.LEATHER_CHESTPLATE, 1);
+		items[4] = new ItemStack(Material.LEATHER_LEGGINGS, 1);
+		items[5] = new ItemStack(Material.LEATHER_BOOTS, 1);
+		items[6] = new ItemStack(Material.CHAINMAIL_HELMET, 1);
+		items[7] = new ItemStack(Material.CHAINMAIL_CHESTPLATE, 1);
+		items[8] = new ItemStack(Material.CHAINMAIL_LEGGINGS, 1);
+		items[9] = new ItemStack(Material.CHAINMAIL_BOOTS, 1);
+		items[10] = new ItemStack(Material.WHEAT, 1);
+		items[11] = new ItemStack(Material.WHEAT, 2);
+		ItemStack poisonArrow = new ItemStack(Material.TIPPED_ARROW);
+		PotionMeta meta = (PotionMeta) poisonArrow.getItemMeta();
+		meta.setBasePotionData(new PotionData(PotionType.POISON));
+		poisonArrow.setItemMeta(meta);
+		items[11] = poisonArrow;
+	}
+
 	public void EndGame(Team winningTeam){
 		for (Player p : this.getServer().getOnlinePlayers()) {
 			p.setMaxHealth(20);
