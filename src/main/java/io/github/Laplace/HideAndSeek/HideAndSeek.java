@@ -56,7 +56,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 
 		deadPlayer.sendMessage("Desperately you seek for help, but all you can do is moan and yelp.");
 		if (killer != null) {
-			killer.sendMessage("Its the right thing to do you told yourself, but tell me, was it for the pelf?");
+			killer.sendMessage("Its the right thing to do you tell yourself, but tell me, was it for the pelf?");
 		}
 
 		if (hunters.IsAllDead()){
@@ -264,7 +264,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 	}
 
 	public void FillChest(){
-		ItemStack[] items = new ItemStack[11];
+		ItemStack[] items = new ItemStack[17];
 		items[0] = new ItemStack(Material.WOODEN_PICKAXE, 1);
 		items[1] = new ItemStack(Material.STONE_HOE, 1);
 		items[2] = new ItemStack(Material.LEATHER_HELMET, 1);
@@ -277,11 +277,16 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		items[9] = new ItemStack(Material.CHAINMAIL_BOOTS, 1);
 		items[10] = new ItemStack(Material.WHEAT, 1);
 		items[11] = new ItemStack(Material.WHEAT, 2);
-		ItemStack poisonArrow = new ItemStack(Material.TIPPED_ARROW);
+		ItemStack poisonArrow = new ItemStack(Material.TIPPED_ARROW, 1);
 		PotionMeta meta = (PotionMeta) poisonArrow.getItemMeta();
 		meta.setBasePotionData(new PotionData(PotionType.POISON));
+		//meta.addCustomEffect(new PotionEffect(PotionEffectType.POISON, 10, 2), true);
 		poisonArrow.setItemMeta(meta);
-		items[11] = poisonArrow;
+		items[12] = poisonArrow;
+		items[13] = new ItemStack(Material.ROTTEN_FLESH, 2);
+		items[14] = new ItemStack(Material.BOW, 1);
+		items[15] = new ItemStack(Material.BOW, 1);
+		items[16] = new ItemStack(Material.WOODEN_SHOVEL, 1);
 	}
 
 	public void EndGame(Team winningTeam){
