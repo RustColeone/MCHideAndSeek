@@ -18,3 +18,9 @@ commands:
    adjustmaxhealth:
       description: Adjust max health of team
       usage: /adjustmaxhealth <team> <offset>
+   hspos1:
+      description: Mark current player position as first corner of hide-and-seek area
+      usage: /hspos1
+   hspos2:
+      description: Mark current player position as second corner of hide-and-seek area
+      usage: /hspos2

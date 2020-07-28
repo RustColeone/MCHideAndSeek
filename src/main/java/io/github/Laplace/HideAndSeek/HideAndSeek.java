@@ -11,9 +11,11 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.potion.*;
 import org.bukkit.event.player.*;
 import org.bukkit.event.entity.*;
+import org.bukkit.block.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.BoundingBox;
 
 public final class HideAndSeek extends JavaPlugin implements Listener {
 	Team hunters = new Team("Hunter");
@@ -22,6 +24,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 	boolean gameInProgress = false;
 
 	HashMap<UUID, Location> playerDeathPoint = new HashMap();
+	HashMap<UUID, Location[]> playerCornerSetting = new HashMap();
 
 	@Override
 	public void onEnable() {
@@ -113,6 +116,19 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			return true;
 		}
 		if (cmd.getName().equalsIgnoreCase("startgame")) {
+			if (!(sender instanceof Player)) {
+				sender.sendMessage("Can only be called player because region selection is required.");
+				return true;
+			}
+			Player player = (Player) sender;
+			UUID player_uuid = player.getUniqueId();
+			Location[] arr = playerCornerSetting.get(player_uuid);
+			if (arr == null || arr[0] == null || arr[1] == null || !arr[0].getWorld().equals(arr[1].getWorld()) || !arr[0].getWorld().equals(player.getLocation().getWorld())) {
+				sender.sendMessage("Invalid region selection. Select bounding box of map with /hspos1 and /hspos2.");
+				return true;
+			}
+			BoundingBox bb = BoundingBox.of(arr[0], arr[1]);
+			FillChest(player.getLocation().getWorld(), bb);
 			StartGame();
 			return true;
 		}
@@ -233,6 +249,23 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 			t.AdjustMaxHealth(adj);
 			return true;
 		}
+		if (cmd.getName().equalsIgnoreCase("hspos1") || cmd.getName().equalsIgnoreCase("hspos2")) {
+			if (!(sender instanceof Player)) {
+				sender.sendMessage("Expected this to be called by player.");
+				return true;
+			}
+			int corner_index = cmd.getName().equalsIgnoreCase("hspos1") ? 0 : 1;
+			UUID player_uuid = ((Player) sender).getUniqueId();
+			Location[] arr = playerCornerSetting.get(player_uuid);
+			if (arr == null) {
+				arr = new Location[2];
+				playerCornerSetting.put(player_uuid, arr);
+			}
+			Location l = ((Player) sender).getLocation();
+			arr[corner_index] = new Location(l.getWorld(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
+			sender.sendMessage(String.format("Set position %d!", corner_index + 1));
+			return true;
+		}
 		return false;
 	}
 
@@ -297,7 +330,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		}
 	}
 
-	public void FillChest(){
+	public void FillChest (World world, BoundingBox bb){
 		ItemStack[] items = new ItemStack[17];
 		items[0] = new ItemStack(Material.WOODEN_PICKAXE, 1);
 		items[1] = new ItemStack(Material.STONE_HOE, 1);
@@ -321,6 +354,29 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		items[14] = new ItemStack(Material.BOW, 1);
 		items[15] = new ItemStack(Material.BOW, 1);
 		items[16] = new ItemStack(Material.WOODEN_SHOVEL, 1);
+
+		Random rng = new Random();
+		for (int x = (int) bb.getMinX(); x <= (int) bb.getMaxX(); x ++) {
+			for (int y = (int) bb.getMinY(); y <= (int) bb.getMaxY(); y ++) {
+				for (int z = (int) bb.getMinZ(); z <= (int) bb.getMaxZ(); z ++) {
+					Block b = world.getBlockAt​(x, y, z);
+					if (b.getType().equals(Material.CHEST) || b.getType().equals(Material.TRAPPED_CHEST)) {
+						Chest chest = (Chest) b.getState();
+						Inventory inv = chest.getSnapshotInventory();
+						inv.clear();
+						ItemStack[] new_contents = new ItemStack[inv.getSize()];
+						int nb_items = rng.nextInt(3) + 1;
+						for (int _i = 0; _i < nb_items; _i ++) {
+							int index;
+							while (new_contents[index = rng.nextInt(new_contents.length)] != null) {}
+							new_contents[index] = items[rng.nextInt(items.length)].clone();
+						}
+						inv.setContents(new_contents);
+						chest.update();
+					}
+				}
+			}
+		}
 	}
 
 	public void EndGame(Team winningTeam){
