@@ -383,6 +383,7 @@ public final class HideAndSeek extends JavaPlugin implements Listener {
 		for (Player p : this.getServer().getOnlinePlayers()) {
 			p.setMaxHealth(20);
 			p.setHealth​(20);
+			p.setFoodLevel(20);
 			String Message;
 			if (winningTeam != null) {
 				if (winningTeam.HasPlayer(p)) {
